@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="
+  default-src 'self'; 
+  script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.gstatic.com https://apis.google.com 'unsafe-inline' 'unsafe-eval'; 
+  style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; 
+  connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com; 
+  font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+  img-src 'self' data: https:;
+">
+    <title data-i18n="page.title">Admin Portal | Barangay Ubaliw</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        // Theme initialization
+        if (localStorage.getItem('brgy-theme') === 'dark' || (!('brgy-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // Language initialization
+        window.currentLang = localStorage.getItem('brgy-lang') || 'en';
+        document.documentElement.lang = window.currentLang;
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --secondary: #2563eb;
+            --accent: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .dark .glass-nav {
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .security-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .login-attempt-bar {
+            transition: width 0.3s ease;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .session-timer {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Language switcher styles */
+        .lang-switcher {
+            position: relative;
+        }
+        
+        .lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-width: 120px;
+            z-index: 100;
+        }
+        
+        .dark .lang-dropdown {
+            background: #1e293b;
+        }
+        
+        .lang-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .lang-option:hover {
+            background: #f1f5f9;
+        }
+        
+        .dark .lang-option:hover {
+            background: #334155;
+        }
+        
+        .lang-option.active {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .dark .lang-option.active {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+
+    <!-- Security Notification -->
+    <div id="notification" class="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] hidden">
+        <div id="notificationBox" class="px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border">
+            <i id="notificationIcon" class="fas fa-info-circle"></i>
+            <span id="notificationText">Message here</span>
+        </div>
+    </div>
+
+    <!-- Session Timeout Warning -->
+    <div id="sessionWarning" class="fixed top-0 left-0 w-full bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium hidden z-[2500]">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <span data-i18n="session.expiring">Session expiring in</span> <span id="sessionCountdown" class="font-bold">60</span> <span data-i18n="session.seconds">seconds</span>. 
+        <button onclick="extendSession()" class="underline ml-2 hover:no-underline" data-i18n="session.extend">Extend Session</button>
+    </div>
+
+    <!-- Login View -->
+    <div id="loginView" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Security Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-900 rounded-2xl mb-4 shadow-xl">
+                    <i class="fas fa-shield-alt text-4xl text-emerald-400"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white" data-i18n="login.title">Administrator Portal</h1>
+                <p class="text-slate-500 text-sm mt-1" data-i18n="login.subtitle">Barangay Ubaliw Command Center</p>
+                <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-medium text-emerald-700 dark:text-emerald-400" data-i18n="login.secure">Secure Connection</span>
+                </div>
+            </div>
+
+            <!-- Login Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 card-shadow border border-slate-100 dark:border-slate-800">
+                <!-- Rate Limit Warning -->
+                <div id="rateLimitWarning" class="hidden mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-lock text-red-500"></i>
+                        <div>
+                            <p class="text-sm font-medium text-red-700 dark:text-red-400" data-i18n="lockout.title">Too many failed attempts</p>
+                            <p class="text-xs text-red-600 dark:text-red-500"><span data-i18n="lockout.wait">Please wait</span> <span id="lockoutTimer">300</span> <span data-i18n="lockout.seconds">seconds</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-2 h-1 bg-red-200 dark:bg-red-800 rounded-full overflow-hidden">
+                        <div id="lockoutBar" class="h-full bg-red-500 login-attempt-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- Attempts Counter -->
+                <div id="attemptsCounter" class="hidden mb-4 text-center">
+                    <p class="text-xs text-amber-600 dark:text-amber-400">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        <span id="attemptsLeft">3</span> <span data-i18n="attempts.remaining">attempts remaining</span>
+                    </p>
+                </div>
+
+                <form id="adminLoginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-envelope mr-1 text-slate-400"></i> <span data-i18n="form.email">Admin Email</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="adminEmail" 
+                            autocomplete="email"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 ring-blue-500 outline-none transition-all"
+                            placeholder="admin@barangay-ubaliw.gov.ph"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                            <i class="fas fa-lock mr-1 text-slate-400"></i> <span data-i18n="form.password">Admin Password</span>
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="adminPassword" 
+                                autocomplete="current-password"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 ring-blue-500 outline-none transition-all pr-10"
+                                placeholder="Enter your secure password"
+                                required
+                            >
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i id="passwordToggleIcon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CAPTCHA Placeholder -->
+                    <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="captchaCheck" class="w-4 h-4 text-blue-600 rounded" required>
+                            <label for="captchaCheck" class="text-sm text-slate-600 dark:text-slate-400" data-i18n="form.captcha">I'm not a robot</label>
+                            <i class="fas fa-robot ml-auto text-slate-400"></i>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        id="loginBtn"
+                        class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                        <span id="btnText" data-i18n="form.verify">Verify Access</span>
+                        <div id="btnSpinner" class="spinner hidden"></div>
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <a href="index.html" class="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-arrow-left"></i> <span data-i18n="form.back">Back to Resident Portal</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Security Footer -->
+            <div class="mt-6 text-center">
+                <p class="text-xs text-slate-400">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    <span data-i18n="footer.monitored">This system is monitored and logged. Unauthorized access is prohibited.</span>
+                </p>
+                <p class="text-xs text-slate-400 mt-1" data-i18n="footer.timeout">Session timeout: 30 minutes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard View -->
+    <div id="dashboardView" class="hidden min-h-screen">
+        <!-- Admin Header -->
+        <header class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold" data-i18n="dashboard.title">Admin Portal</h1>
+                        <p class="text-xs text-slate-400">Barangay Ubaliw</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Language Switcher -->
+                    <div class="lang-switcher">
+                        <button onclick="toggleLangDropdown()" class="w-10 h-10 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center transition-all" title="Change Language">
+                            <i class="fas fa-globe"></i>
+                        </button>
+                        <div id="langDropdown" class="lang-dropdown hidden">
+                            <div class="lang-option" data-lang="en" onclick="setLanguage('en')">
+                                <span>🇺🇸</span> English
+                            </div>
+                            <div class="lang-option" data-lang="tl" onclick="setLanguage('tl')">
+                                <span>🇵🇭</span> Tagalog
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Session Timer -->
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-full">
+                        <i class="fas fa-clock text-xs text-slate-400"></i>
+                        <span id="sessionTimer" class="text-xs session-timer text-slate-300">30:00</span>
+                    </div>
+                    
+                    <!-- Admin Info -->
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p id="adminName" class="text-sm font-medium">Admin</p>
+                            <p class="text-xs text-emerald-400" data-i18n="dashboard.role">Administrator</p>
+                        </div>
+                        <button onclick="handleLogout()" class="w-10 h-10 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-full flex items-center justify-center transition-all">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="max-w-7xl mx-auto p-6 space-y-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase" data-i18n="stats.pending">Pending Requests</p>
+                            <p id="pendingCount" class="text-2xl font-bold text-amber-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-clock text-amber-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase" data-i18n="stats.processed">Processed Today</p>
+                            <p id="processedCount" class="text-2xl font-bold text-emerald-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-check-circle text-emerald-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase" data-i18n="stats.residents">Total Residents</p>
+                            <p id="residentCount" class="text-2xl font-bold text-blue-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase" data-i18n="stats.session">Session</p>
+                            <p id="sessionStatus" class="text-sm font-bold text-emerald-600" data-i18n="stats.active">Active</p>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-emerald-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Pending Requests -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <h2 class="font-bold flex items-center gap-2">
+                                <i class="fas fa-inbox text-blue-600"></i>
+                                <span data-i18n="requests.title">Document Requests</span>
+                            </h2>
+                            <button onclick="refreshData()" class="text-sm text-slate-500 hover:text-blue-600">
+                                <i class="fas fa-sync-alt"></i> <span data-i18n="requests.refresh">Refresh</span>
+                            </button>
+                        </div>
+                        <div id="adminRequestList" class="p-6 space-y-4 max-h-[500px] overflow-y-auto">
+                            <div class="text-center py-12 text-slate-400">
+                                <i class="fas fa-inbox text-4xl mb-3"></i>
+                                <p data-i18n="requests.empty">No pending requests</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div>
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 dark:border-slate-800">
+                            <h2 class="font-bold flex items-center gap-2">
+                                <i class="fas fa-history text-slate-600"></i>
+                                <span data-i18n="activity.title">Activity Log</span>
+                            </h2>
+                        </div>
+                        <div id="activityLog" class="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+                            <div class="text-center py-8 text-slate-400 text-sm" data-i18n="activity.empty">
+                                No recent activity
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Monitor Section (NEW) -->
+            <div class="mt-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-lg">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-desktop text-purple-600 dark:text-purple-400"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-slate-900 dark:text-white">Resident Portal Monitor</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Live preview of the resident-facing site</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="refreshIframe()" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all" title="Refresh Preview">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <a href="index.html" target="_blank" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-2">
+                            Open Full View <i class="fas fa-external-link-alt text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-slate-100 dark:bg-slate-950 p-1">
+                    <div class="relative rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-inner">
+                        <!-- Loading overlay -->
+                        <div id="iframeLoader" class="absolute inset-0 bg-white dark:bg-slate-900 z-10 flex items-center justify-center">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                                <span class="text-sm text-slate-500">Loading resident portal...</span>
+                            </div>
+                        </div>
+                        <iframe 
+                            id="residentSiteFrame" 
+                            src="index.html" 
+                            class="w-full h-[600px] border-0" 
+                            title="Resident Portal Preview"
+                            onload="document.getElementById('iframeLoader').classList.add('hidden')"
+                        ></iframe>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span><i class="fas fa-info-circle mr-1"></i> Preview updates automatically when page loads</span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Live Connection
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut,
+            setPersistence,
+            browserSessionPersistence
+        } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            collection, 
+            onSnapshot,
+            updateDoc,
+            query,
+            where,
+            getDocs
+        } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR7U2yC1tnRDtus1PZys8r4MiY1IVTIY8",
+            authDomain: "barangayubaliw-75159.firebaseapp.com",
+            projectId: "barangayubaliw-75159",
+            storageBucket: "barangayubaliw-75159.firebasestorage.app",
+            messagingSenderId: "726046441576",
+            appId: "1:726046441576:web:a6b9096fd3fca01343bbdd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        setPersistence(auth, browserSessionPersistence);
+
+        // ==================== TRANSLATIONS ====================
+        const translations = {
+            en: {
+                'page.title': 'Admin Portal | Barangay Ubaliw',
+                'login.title': 'Administrator Portal',
+                'login.subtitle': 'Barangay Ubaliw Command Center',
+                'login.secure': 'Secure Connection',
+                'form.email': 'Admin Email',
+                'form.password': 'Admin Password',
+                'form.captcha': "I'm not a robot",
+                'form.verify': 'Verify Access',
+                'form.back': 'Back to Resident Portal',
+                'lockout.title': 'Too many failed attempts',
+                'lockout.wait': 'Please wait',
+                'lockout.seconds': 'seconds',
+                'attempts.remaining': 'attempts remaining',
+                'footer.monitored': 'This system is monitored and logged. Unauthorized access is prohibited.',
+                'footer.timeout': 'Session timeout: 30 minutes',
+                'session.expiring': 'Session expiring in',
+                'session.seconds': 'seconds',
+                'session.extend': 'Extend Session',
+                'dashboard.title': 'Admin Portal',
+                'dashboard.role': 'Administrator',
+                'stats.pending': 'Pending Requests',
+                'stats.processed': 'Processed Today',
+                'stats.residents': 'Total Residents',
+                'stats.session': 'Session',
+                'stats.active': 'Active',
+                'requests.title': 'Document Requests',
+                'requests.refresh': 'Refresh',
+                'requests.empty': 'No pending requests',
+                'requests.reqId': 'Req ID',
+                'requests.purpose': 'Purpose',
+                'requests.process': 'Process',
+                'requests.processed': 'Processed',
+                'req.pending': 'Pending',
+                'req.processed': 'Processed',
+                'activity.title': 'Activity Log',
+                'activity.empty': 'No recent activity',
+                // Notifications
+                'notif.lockedOut': 'Account locked. Try again in',
+                'notif.fillCredentials': 'Please enter admin credentials',
+                'notif.verifyCaptcha': 'Please verify you are not a robot',
+                'notif.loginSuccess': 'Admin access verified.',
+                'notif.invalidCredentials': 'Unauthorized or invalid credentials.',
+                'notif.sessionExtended': 'Session extended',
+                'notif.dataRefreshed': 'Data refreshed',
+                'notif.requestProcessed': 'Request marked as processed',
+                'notif.processFailed': 'Failed to process request',
+                'notif.logoutSuccess': 'Logged out successfully',
+                'notif.unauthorized': 'Unauthorized. Admin access only.',
+                'notif.adminOnly': 'Administrators should use the Admin Portal'
+            },
+            tl: {
+                'page.title': 'Admin Portal | Barangay Ubaliw',
+                'login.title': 'Portal ng Administrator',
+                'login.subtitle': 'Command Center ng Barangay Ubaliw',
+                'login.secure': 'Ligtas na Koneksyon',
+                'form.email': 'Email ng Admin',
+                'form.password': 'Password ng Admin',
+                'form.captcha': 'Hindi ako robot',
+                'form.verify': 'Beripikahin ang Access',
+                'form.back': 'Bumalik sa Portal ng Residente',
+                'lockout.title': 'Masyadong maraming nabigong pagtatangka',
+                'lockout.wait': 'Mangyaring maghintay ng',
+                'lockout.seconds': 'segundo',
+                'attempts.remaining': 'natitirang pagtatangka',
+                'footer.monitored': 'Ang sistemang ito ay minomonitor at nire-record. Ang hindi awtorisadong access ay ipinagbabawal.',
+                'footer.timeout': 'Session timeout: 30 minuto',
+                'session.expiring': 'Mag-eexpire ang session sa',
+                'session.seconds': 'segundo',
+                'session.extend': 'Palawigin ang Session',
+                'dashboard.title': 'Admin Portal',
+                'dashboard.role': 'Administrator',
+                'stats.pending': 'Nakabinbing Kahilingan',
+                'stats.processed': 'Naproseso Ngayon',
+                'stats.residents': 'Kabuuang Residente',
+                'stats.session': 'Session',
+                'stats.active': 'Aktibo',
+                'requests.title': 'Mga Kahilingang Dokumento',
+                'requests.refresh': 'I-refresh',
+                'requests.empty': 'Walang nakabinbing kahilingan',
+                'requests.reqId': 'ID ng Req',
+                'requests.purpose': 'Layunin',
+                'requests.process': 'Proseso',
+                'requests.processed': 'Naproseso',
+                'req.pending': 'Nakabinbin',
+                'req.processed': 'Naproseso',
+                'activity.title': 'Log ng Aktibidad',
+                'activity.empty': 'Walang kamakailang aktibidad',
+                // Notifications
+                'notif.lockedOut': 'Naka-lock ang account. Subukang muli sa',
+                'notif.fillCredentials': 'Mangyaring ilagay ang mga kredensyal ng admin',
+                'notif.verifyCaptcha': 'Mangyaring patunayan na hindi ka robot',
+                'notif.loginSuccess': 'Beripikado ang access ng admin.',
+                'notif.invalidCredentials': 'Hindi awtorisado o di-wastong kredensyal.',
+                'notif.sessionExtended': 'Pinalawig ang session',
+                'notif.dataRefreshed': 'Na-refresh ang data',
+                'notif.requestProcessed': 'Minarkahan ang kahilingan bilang naproseso',
+                'notif.processFailed': 'Nabigong i-proseso ang kahilingan',
+                'notif.logoutSuccess': 'Matagumpay na nag-log out',
+                'notif.unauthorized': 'Hindi awtorisado. Admin access lamang.',
+                'notif.adminOnly': 'Ang mga administrator ay dapat gumamit ng Admin Portal'
+            }
+        };
+
+        // ==================== LANGUAGE FUNCTIONS ====================
+        window.setLanguage = function(lang) {
+            window.currentLang = lang;
+            localStorage.setItem('brgy-lang', lang);
+            document.documentElement.lang = lang;
+            applyTranslations();
+            updateLangDropdown();
+            toggleLangDropdown();
+        };
+
+        window.toggleLangDropdown = function() {
+            const dropdown = document.getElementById('langDropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        };
+
+        function updateLangDropdown() {
+            document.querySelectorAll('.lang-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.lang === window.currentLang);
+            });
+        }
+
+        function applyTranslations() {
+            const t = translations[window.currentLang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (t[key]) {
+                    el.textContent = t[key];
+                }
+            });
+            
+            const titleEl = document.querySelector('[data-i18n="page.title"]');
+            if (titleEl && t['page.title']) {
+                document.title = t['page.title'];
+            }
+        }
+
+        function getText(key) {
+            return translations[window.currentLang][key] || translations['en'][key] || key;
+        }
+
+        document.addEventListener('click', (e) => {
+            const switcher = document.querySelector('.lang-switcher');
+            if (switcher && !switcher.contains(e.target)) {
+                const dropdown = document.getElementById('langDropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
+
+        // Initialize language
+        applyTranslations();
+        updateLangDropdown();
+
+        // Security Configuration
+        const SECURITY_CONFIG = {
+            MAX_LOGIN_ATTEMPTS: 5,
+            LOCKOUT_DURATION: 300,
+            SESSION_TIMEOUT: 30 * 60,
+            WARNING_BEFORE_TIMEOUT: 60
+        };
+
+        let currentAdmin = null;
+        let sessionTimer = null;
+        let warningTimer = null;
+        let unsubscribers = [];
+        let activityLog = [];
+
+        let loginAttempts = parseInt(localStorage.getItem('admin_login_attempts') || '0');
+        let lockoutEndTime = parseInt(localStorage.getItem('admin_lockout_end') || '0');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLockoutStatus();
+            setupEventListeners();
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const isAdmin = await verifyAdminRole(user.uid);
+                if (isAdmin) {
+                    currentAdmin = user;
+                    showDashboard();
+                    startSessionTimer();
+                    loadDashboardData();
+                    logActivity(getText('activity.sessionResumed'), 'info');
+                } else {
+                    await signOut(auth);
+                    showNotification(getText('notif.unauthorized'), 'error');
+                }
+            } else {
+                showLoginView();
+            }
+        });
+
+        function setupEventListeners() {
+            document.getElementById('adminLoginForm').addEventListener('submit', handleLogin);
+            document.getElementById('adminEmail').addEventListener('input', () => {
+                document.getElementById('attemptsCounter').classList.add('hidden');
+            });
+
+            ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+                document.addEventListener(event, debounce(resetSessionTimer, 1000));
+            });
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            if (isLockedOut()) {
+                showNotification(`${getText('notif.lockedOut')} ${getRemainingLockoutTime()} ${getText('lockout.seconds')}.`, 'error');
+                return;
+            }
+
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPassword').value;
+            const captchaChecked = document.getElementById('captchaCheck').checked;
+
+            if (!email || !pass) {
+                showNotification(getText('notif.fillCredentials'), 'error');
+                return;
+            }
+
+            if (!captchaChecked) {
+                showNotification(getText('notif.verifyCaptcha'), 'error');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const isAdmin = await verifyAdminRole(userCredential.user.uid);
+                
+                if (!isAdmin) {
+                    await signOut(auth);
+                    incrementLoginAttempts();
+                    showNotification(getText('notif.unauthorized'), 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                resetLoginAttempts();
+                currentAdmin = userCredential.user;
+                
+                logActivity(`Admin login: ${email}`, 'success');
+                showNotification(getText('notif.loginSuccess'), 'success');
+                
+                showDashboard();
+                startSessionTimer();
+                loadDashboardData();
+
+            } catch (error) {
+                incrementLoginAttempts();
+                
+                let errorMessage = getText('notif.invalidCredentials');
+                if (error.code === 'auth/too-many-requests') {
+                    errorMessage = getText('notif.tooManyAttempts');
+                }
+                
+                logActivity(`Failed login attempt: ${email}`, 'error');
+                showNotification(errorMessage, 'error');
+                
+                const remaining = SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS - loginAttempts;
+                if (remaining > 0 && remaining < SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS) {
+                    document.getElementById('attemptsLeft').textContent = remaining;
+                    document.getElementById('attemptsCounter').classList.remove('hidden');
+                }
+                
+                document.getElementById('adminLoginForm').classList.add('shake');
+                setTimeout(() => document.getElementById('adminLoginForm').classList.remove('shake'), 500);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function verifyAdminRole(uid) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    return data.role === 'admin';
+                }
+                return false;
+            } catch (error) {
+                console.error('Error verifying admin role:', error);
+                return false;
+            }
+        }
+
+        function incrementLoginAttempts() {
+            loginAttempts++;
+            localStorage.setItem('admin_login_attempts', loginAttempts.toString());
+            
+            if (loginAttempts >= SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS) {
+                const lockoutEnd = Date.now() + (SECURITY_CONFIG.LOCKOUT_DURATION * 1000);
+                lockoutEndTime = lockoutEnd;
+                localStorage.setItem('admin_lockout_end', lockoutEnd.toString());
+                showLockoutUI();
+            }
+        }
+
+        function resetLoginAttempts() {
+            loginAttempts = 0;
+            lockoutEndTime = 0;
+            localStorage.removeItem('admin_login_attempts');
+            localStorage.removeItem('admin_lockout_end');
+            hideLockoutUI();
+        }
+
+        function isLockedOut() {
+            if (lockoutEndTime === 0) return false;
+            return Date.now() < lockoutEndTime;
+        }
+
+        function getRemainingLockoutTime() {
+            if (!isLockedOut()) return 0;
+            return Math.ceil((lockoutEndTime - Date.now()) / 1000);
+        }
+
+        function checkLockoutStatus() {
+            if (isLockedOut()) {
+                showLockoutUI();
+                startLockoutTimer();
+            }
+        }
+
+        function showLockoutUI() {
+            document.getElementById('rateLimitWarning').classList.remove('hidden');
+            document.getElementById('adminEmail').disabled = true;
+            document.getElementById('adminPassword').disabled = true;
+            document.getElementById('loginBtn').disabled = true;
+            startLockoutTimer();
+        }
+
+        function hideLockoutUI() {
+            document.getElementById('rateLimitWarning').classList.add('hidden');
+            document.getElementById('adminEmail').disabled = false;
+            document.getElementById('adminPassword').disabled = false;
+            document.getElementById('loginBtn').disabled = false;
+            document.getElementById('attemptsCounter').classList.add('hidden');
+        }
+
+        function startLockoutTimer() {
+            const updateTimer = () => {
+                const remaining = getRemainingLockoutTime();
+                if (remaining <= 0) {
+                    resetLoginAttempts();
+                    return;
+                }
+                document.getElementById('lockoutTimer').textContent = remaining;
+                const percentage = (remaining / SECURITY_CONFIG.LOCKOUT_DURATION) * 100;
+                document.getElementById('lockoutBar').style.width = `${percentage}%`;
+                setTimeout(updateTimer, 1000);
+            };
+            updateTimer();
+        }
+
+        function startSessionTimer() {
+            let remaining = SECURITY_CONFIG.SESSION_TIMEOUT;
+            
+            sessionTimer = setInterval(() => {
+                remaining--;
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                const timerEl = document.getElementById('sessionTimer');
+                if (timerEl) {
+                    timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+                
+                if (remaining === SECURITY_CONFIG.WARNING_BEFORE_TIMEOUT) {
+                    showSessionWarning();
+                }
+                
+                if (remaining <= 0) {
+                    handleSessionTimeout();
+                }
+            }, 1000);
+        }
+
+        function resetSessionTimer() {
+            if (!currentAdmin) return;
+            
+            if (sessionTimer) {
+                clearInterval(sessionTimer);
+            }
+            
+            document.getElementById('sessionWarning').classList.add('hidden');
+            startSessionTimer();
+        }
+
+        function showSessionWarning() {
+            document.getElementById('sessionWarning').classList.remove('hidden');
+            let warningSeconds = SECURITY_CONFIG.WARNING_BEFORE_TIMEOUT;
+            
+            warningTimer = setInterval(() => {
+                warningSeconds--;
+                document.getElementById('sessionCountdown').textContent = warningSeconds;
+                if (warningSeconds <= 0) {
+                    clearInterval(warningTimer);
+                }
+            }, 1000);
+        }
+
+        window.extendSession = function() {
+            resetSessionTimer();
+            document.getElementById('sessionWarning').classList.add('hidden');
+            showNotification(getText('notif.sessionExtended'), 'success');
+            logActivity(getText('activity.sessionExtended'), 'info');
+        };
+
+        async function handleSessionTimeout() {
+            clearInterval(sessionTimer);
+            if (warningTimer) clearInterval(warningTimer);
+            
+            logActivity(getText('activity.sessionTimeout'), 'warning');
+            await signOut(auth);
+            showNotification(getText('notif.sessionExpired'), 'error');
+            showLoginView();
+        }
+
+        window.handleLogout = async function() {
+            logActivity(getText('activity.logout'), 'info');
+            
+            unsubscribers.forEach(unsub => unsub());
+            unsubscribers = [];
+            
+            if (sessionTimer) clearInterval(sessionTimer);
+            if (warningTimer) clearInterval(warningTimer);
+            
+            await signOut(auth);
+            showNotification(getText('notif.logoutSuccess'), 'success');
+            showLoginView();
+        };
+
+        function showLoginView() {
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = loading;
+            if (loading) {
+                btnText.textContent = window.currentLang === 'tl' ? 'Nagbe-beripika...' : 'Verifying...';
+                btnSpinner.classList.remove('hidden');
+            } else {
+                btnText.textContent = getText('form.verify');
+                btnSpinner.classList.add('hidden');
+            }
+        }
+
+        window.togglePasswordVisibility = function() {
+            const input = document.getElementById('adminPassword');
+            const icon = document.getElementById('passwordToggleIcon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        };
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const box = document.getElementById('notificationBox');
+            const icon = document.getElementById('notificationIcon');
+            const text = document.getElementById('notificationText');
+            
+            text.textContent = message;
+            box.className = 'px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border';
+            
+            if (type === 'error') {
+                box.classList.add('bg-red-600', 'text-white', 'border-red-500');
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'success') {
+                box.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'warning') {
+                box.classList.add('bg-amber-500', 'text-white', 'border-amber-400');
+                icon.className = 'fas fa-exclamation-triangle';
+            } else {
+                box.classList.add('bg-slate-900', 'text-white', 'border-slate-700');
+                icon.className = 'fas fa-info-circle';
+            }
+            
+            notification.classList.remove('hidden');
+            setTimeout(() => notification.classList.add('hidden'), 4000);
+        }
+
+        async function loadDashboardData() {
+            const userDoc = await getDoc(doc(db, 'users', currentAdmin.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                document.getElementById('adminName').textContent = data.name || 'Administrator';
+            }
+
+            const requestsRef = collection(db, 'requests');
+            const unsub = onSnapshot(requestsRef, (snapshot) => {
+                const requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                updateRequestList(requests);
+                updateStats(requests);
+            });
+            unsubscribers.push(unsub);
+
+            const usersQuery = query(collection(db, 'users'), where('role', '==', 'resident'));
+            const usersSnap = await getDocs(usersQuery);
+            document.getElementById('residentCount').textContent = usersSnap.size;
+        }
+
+        // UPDATED: Function to show resident name in requests
+        function updateRequestList(requests) {
+            const list = document.getElementById('adminRequestList');
+            const sorted = requests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (sorted.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fas fa-inbox text-4xl mb-3"></i>
+                        <p>${getText('requests.empty')}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = sorted.map(req => `
+                <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">${getText('requests.reqId')}: ${req.id.substring(0, 8)}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-lg">${req.docType}</h4>
+                            <!-- NEW: Resident Name Display -->
+                            <div class="flex items-center gap-2 mt-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg w-fit">
+                                <i class="fas fa-user-circle text-blue-500"></i>
+                                <span class="font-medium truncate max-w-[200px]">${req.userName || req.userEmail || 'Unknown Resident'}</span>
+                                ${req.userName && req.userEmail ? `<span class="text-slate-400 text-xs">(${req.userEmail})</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full ml-2 shrink-0 ${
+                            req.status === 'Pending' 
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        }">
+                            ${req.status === 'Pending' ? getText('req.pending') || 'Pending' : getText('req.processed') || 'Processed'}
+                        </span>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900/50 p-3 rounded-lg mb-3 border border-slate-200 dark:border-slate-700">
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong class="text-slate-700 dark:text-slate-300">${getText('requests.purpose')}:</strong> ${req.purpose || 'N/A'}
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="fas fa-clock"></i> ${new Date(req.timestamp).toLocaleString()}
+                        </span>
+                        ${req.status === 'Pending' ? `
+                            <button onclick="approveRequest('${req.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                <i class="fas fa-check"></i> ${getText('requests.process')}
+                            </button>
+                        ` : `
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <i class="fas fa-check-circle"></i> ${getText('requests.processed') || 'Processed'}
+                            </span>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(requests) {
+            const pending = requests.filter(r => r.status === 'Pending').length;
+            const processed = requests.filter(r => {
+                if (r.status !== 'Processed') return false;
+                const date = new Date(r.timestamp);
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+            }).length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('processedCount').textContent = processed;
+        }
+
+        window.approveRequest = async function(id) {
+            try {
+                await updateDoc(doc(db, 'requests', id), { 
+                    status: 'Processed',
+                    processedAt: new Date().toISOString(),
+                    processedBy: currentAdmin.uid
+                });
+                logActivity(`${getText('activity.requestProcessed')} ${id.substring(0, 8)}`, 'success');
+                showNotification(getText('notif.requestProcessed'), 'success');
+            } catch (error) {
+                logActivity(`${getText('activity.requestFailed')} ${id.substring(0, 8)}`, 'error');
+                showNotification(getText('notif.processFailed'), 'error');
+            }
+        };
+
+        window.refreshData = function() {
+            showNotification(getText('notif.dataRefreshed'), 'success');
+            logActivity(getText('activity.dataRefreshed'), 'info');
+        };
+
+        // NEW: Refresh iframe function
+        window.refreshIframe = function() {
+            const iframe = document.getElementById('residentSiteFrame');
+            const loader = document.getElementById('iframeLoader');
+            if (iframe) {
+                loader.classList.remove('hidden');
+                iframe.src = iframe.src;
+                showNotification('Refreshing preview...', 'info');
+            }
+        };
+
+        function logActivity(action, type) {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                action,
+                type,
+                user: currentAdmin?.email || 'Unknown'
+            };
+            activityLog.unshift(entry);
+            if (activityLog.length > 50) activityLog.pop();
+            updateActivityLog();
+        }
+
+        function updateActivityLog() {
+            const container = document.getElementById('activityLog');
+            if (activityLog.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">${getText('activity.empty')}</div>`;
+                return;
+            }
+
+            container.innerHTML = activityLog.map(entry => {
+                let icon = 'fa-info-circle';
+                let color = 'text-blue-500';
+                if (entry.type === 'success') { icon = 'fa-check-circle'; color = 'text-emerald-500'; }
+                if (entry.type === 'error') { icon = 'fa-exclamation-circle'; color = 'text-red-500'; }
+                if (entry.type === 'warning') { icon = 'fa-exclamation-triangle'; color = 'text-amber-500'; }
+
+                return `
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                        <i class="fas ${icon} ${color} mt-0.5"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-slate-700 dark:text-slate-300 truncate">${entry.action}</p>
+                            <p class="text-xs text-slate-400">${new Date(entry.timestamp).toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

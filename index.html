@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-i18n="page.title">Barangay Ubaliw | Digital Portal</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        // Configure Tailwind for class-based Dark Mode
+        tailwind.config = { darkMode: 'class' };
+
+        // Theme initialization
+        if (localStorage.getItem('brgy-theme') === 'dark' || (!('brgy-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // Language initialization
+        window.currentLang = localStorage.getItem('brgy-lang') || 'en';
+        document.documentElement.lang = window.currentLang;
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --secondary: #2563eb;
+            --accent: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .dark .glass-nav {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+
+        #qrcode img { margin: auto; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-unit {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .logo-unit:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .lang-switcher { position: relative; }
+        
+        .lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            min-width: 120px;
+            z-index: 100;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .dark .lang-dropdown { 
+            background: #1e293b; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .lang-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e293b;
+        }
+        
+        .dark .lang-option {
+            color: #e2e8f0;
+        }
+        
+        .lang-option:hover { background: #f1f5f9; }
+        .dark .lang-option:hover { background: #334155; }
+        .lang-option.active { background: #dbeafe; color: #2563eb; }
+        .dark .lang-option.active { background: #1e3a5f; color: #60a5fa; }
+
+        .animate-blob {
+            animation: blob 15s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(80px);
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        #mouseGlow {
+            background: radial-gradient(
+                600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(37, 99, 235, 0.08),
+                transparent 40%
+            );
+        }
+        .dark #mouseGlow {
+            background: radial-gradient(
+                600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(96, 165, 250, 0.08),
+                transparent 40%
+            );
+        }
+
+        .card-shadow {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .dark .card-shadow {
+            background: rgba(30, 41, 59, 0.95);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <div class="fixed inset-0 z-[-1] overflow-hidden bg-slate-50 dark:bg-slate-950 pointer-events-none transition-colors duration-300">
+        <div class="absolute inset-0 backdrop-blur-[100px] z-10"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/30 dark:bg-blue-900/40 mix-blend-multiply dark:mix-blend-screen animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-red-400/20 dark:bg-red-900/30 mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-amber-300/20 dark:bg-amber-700/20 mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-4000"></div>
+        <div id="mouseGlow" class="absolute inset-0 z-20 opacity-60 transition-opacity duration-300"></div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] hidden">
+        <div id="notificationBox" class="px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border bg-white dark:bg-slate-800 dark:border-slate-700">
+            <i id="notificationIcon" class="fas fa-info-circle"></i>
+            <span id="notificationText">Message here</span>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] hidden items-center justify-center p-4">
+        <div id="authModal" class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl p-8 shadow-2xl relative text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700">
+            <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 z-10">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <!-- Login View -->
+            <div id="loginViewModal">
+                <h2 class="text-2xl font-bold mb-2 text-slate-800 dark:text-white" data-i18n="login.title">Resident Login</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mb-6" data-i18n="login.subtitle">Enter your details to access your portal.</p>
+                <form id="residentLoginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="login.email">Email Address</label>
+                        <input type="email" id="loginEmail" autocomplete="email" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all" placeholder="your@email.com" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="login.password">Password</label>
+                        <div class="relative">
+                            <input type="password" id="loginPassword" autocomplete="current-password" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all pr-10" placeholder="Enter your password" required>
+                            <button type="button" onclick="toggleLoginPassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                                <i id="loginPasswordToggle" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                        <span id="loginBtnText" data-i18n="login.signIn">Sign In</span>
+                        <div id="loginSpinner" class="spinner hidden"></div>
+                    </button>
+                </form>
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-slate-600 dark:text-slate-400"><span data-i18n="login.noAccount">Not registered?</span> <a href="javascript:void(0)" onclick="toggleAuthView('register')" class="text-blue-600 hover:text-blue-700 font-semibold" data-i18n="login.createProfile">Create Profile</a></p>
+                </div>
+            </div>
+
+            <!-- Register View -->
+            <div id="registerViewModal" class="hidden">
+                <h2 class="text-2xl font-bold mb-2 text-center text-slate-800 dark:text-white" data-i18n="register.title">Register Resident</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mb-6 text-center" data-i18n="register.subtitle">Join our digital community today.</p>
+                <form id="registerForm" class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="register.fullName">Full Name</label>
+                        <input type="text" id="regName" placeholder="Juan Dela Cruz" autocomplete="name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="register.email">Email Address</label>
+                        <input type="email" id="regEmail" placeholder="juan@example.com" autocomplete="email" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="register.password">Password (Min 6 chars)</label>
+                        <div class="relative">
+                            <input type="password" id="regPassword" autocomplete="new-password" minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all pr-10" placeholder="Create a secure password" required>
+                            <button type="button" onclick="toggleRegPassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                                <i id="regPasswordToggle" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300" data-i18n="register.zone">Zone / Purok</label>
+                        <select id="regAddress" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 ring-blue-500 outline-none transition-all">
+                            <option>Purok 1</option>
+                            <option>Purok 2</option>
+                            <option>Purok 3</option>
+                            <option>Purok 4</option>
+                            <option>Purok 5</option>
+                            <option>Purok 6</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="registerBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                        <span id="registerBtnText" data-i18n="register.submit">Register Profile</span>
+                        <div id="registerSpinner" class="spinner hidden"></div>
+                    </button>
+                </form>
+                <p class="text-center text-sm text-slate-600 dark:text-slate-400 mt-4"><span data-i18n="register.hasAccount">Already registered?</span> <a href="javascript:void(0)" onclick="toggleAuthView('login')" class="text-blue-600 hover:text-blue-700 font-semibold" data-i18n="register.login">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white pt-16 pb-28 px-6 relative overflow-hidden shadow-2xl" id="mainHeader">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-80 h-80 bg-emerald-600/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="max-w-4xl mx-auto flex flex-col items-center text-center relative z-10 w-full">
+        
+        <div class="flex items-center justify-center gap-4 md:gap-6 mb-8">
+                <a href="https://www.facebook.com/profile.php?id=100090214496015" target="_blank" class="logo-unit w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-xl border border-white/20 overflow-hidden group block">
+                    <img src="https://scontent.fwnp1-1.fna.fbcdn.net/v/t39.30808-6/333222461_1641017183003639_8168535146942893319_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=DZwXTknIj1AQ7kNvwHWiRX_&_nc_oc=AdowepwQp6IXCE2Cb0EBwSjCXKeceJMdHfHeuHSGHyv9yxSLw8giZ4a9RiZ52AEyRhU&_nc_zt=23&_nc_ht=scontent.fwnp1-1.fna&_nc_gid=S3h_B7PpGU0Bacye4GmEWg&_nc_ss=7a32e&oh=00_AfxQR7H2gpo7ZfmNJca5RtQxfVC_zMAmGdnZdi4vYar95A&oe=69C87FD4" alt="National Seal" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=PH&background=0D8ABC&color=fff'">
+                </a>
+                
+                <a href="https://www.facebook.com/profile.php?id=61580231252295" target="_blank" class="logo-unit w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-2xl border-2 border-white/30 ring-4 ring-blue-500/20 overflow-hidden group block shrink-0">
+                    
+                    <img src="https://scontent.fwnp1-1.fna.fbcdn.net/v/t39.30808-6/615534946_122117968401007708_3636808496982474570_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=mcbZs_HjSecQ7kNvwFdgrqp&_nc_oc=AdpqmZJEYneEKUon35N1LdmFobUrOY9E7DgD0YeNkxfSkDy8oMdEzOCvv124Vv1nIrc&_nc_zt=23&_nc_ht=scontent.fwnp1-1.fna&_nc_gid=QURTsM2cplq_4VqeK4uEhw&_nc_ss=7a32e&oh=00_AfztncKaqFDNCLqTL_SCMP-jii6K-cImNGEWScu4MOIJzA&oe=69C751E5" alt="Center Logo" class="w-full h-full object-cover">
+                    
+                </a>
+                
+                <a href="https://www.facebook.com/profile.php?id=100063548208450" target="_blank" class="logo-unit w-16 h-16 md:w-20 md:h-20 bg-white rounded-full overflow-hidden shadow-xl flex items-center justify-center border border-white/20 group block">
+                    <img src="https://scontent.fwnp1-1.fna.fbcdn.net/v/t39.30808-6/243737523_265353975592874_8324836797599779868_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=gG9CzYxsoIsQ7kNvwEBXxqa&_nc_oc=AdrBLHlvPLNMGFPGasBQgjHB4PoDilfJJ1yZFwv8KCrdbZUQ7MFj-kcbQHquRF97S1Q&_nc_zt=23&_nc_ht=scontent.fwnp1-1.fna&_nc_gid=yFjVzX0v2q55h3EqZTvr6w&_nc_ss=7a32e&oh=00_Afwr6V5jLbdS3UnkjD6jWJnzBRotY36OQbVjncfAVEjG7A&oe=69C7544B" alt="Barangay Ubaliw Logo" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=BU&background=10B981&color=fff'">
+                </a>
+            </div>
+    
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-2 text-white">Barangay Ubaliw</h1>
+            <p class="text-slate-400 text-lg font-light mb-8 max-w-lg">Official Community Governance Portal.</p>
+
+            <div id="userHeader">
+                <button onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-full shadow-lg shadow-blue-600/30 transition-all font-semibold flex items-center gap-2 transform hover:-translate-y-1">
+                    <i class="fas fa-user-circle text-lg"></i> <span data-i18n="header.loginBtn">Resident Login</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="absolute top-6 right-6 flex items-center gap-3 z-20">
+            <div class="lang-switcher">
+                <button onclick="toggleLangDropdown()" class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/30 transition-all text-white" title="Change Language">
+                    <i class="fas fa-globe"></i>
+                </button>
+                <div id="langDropdown" class="lang-dropdown hidden mt-2">
+                    <div class="lang-option" data-lang="en" onclick="setLanguage('en')">
+                        <span>🇺🇸</span> English
+                    </div>
+                    <div class="lang-option" data-lang="tl" onclick="setLanguage('tl')">
+                        <span>🇵🇭</span> Tagalog
+                    </div>
+                </div>
+            </div>
+            <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/30 transition-all text-white">
+                <i id="themeIcon" class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+    <!-- Navigation -->
+    <nav class="glass-nav sticky top-4 mx-4 md:mx-auto max-w-2xl rounded-2xl shadow-xl z-50 -mt-8 border border-slate-200/60 dark:border-slate-700/60 transition-colors duration-300">
+        <div class="flex items-center justify-between py-3 px-6">
+            <a href="#home" class="nav-link flex flex-col items-center gap-1.5 text-xs font-bold text-blue-600 transition-colors">
+                <i class="fas fa-house text-xl"></i><span data-i18n="nav.home">Home</span>
+            </a>
+            <a href="#services" class="nav-link flex flex-col items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <i class="fas fa-folder-open text-xl"></i><span data-i18n="nav.services">Services</span>
+            </a>
+            <a href="#emergency" class="nav-link flex flex-col items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                <i class="fas fa-phone-alt text-xl"></i><span data-i18n="nav.hotlines">Hotlines</span>
+            </a>
+            <a href="#portal" class="nav-link flex flex-col items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <i class="fas fa-id-card text-xl"></i><span data-i18n="nav.portal">Portal</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-6 space-y-12 pb-24 text-slate-900 dark:text-white">
+        
+        <!-- Dashboard Section -->
+        <section id="home" class="scroll-mt-24 space-y-6">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 card-shadow border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="w-full md:w-2/3">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white">
+                                <i class="fas fa-user-tie text-xl"></i>
+                            </div>
+                            <div>
+                                <!-- Personalized greeting container -->
+                                <h2 id="userGreeting" class="text-2xl font-bold text-slate-800 dark:text-white" data-i18n="dashboard.title">Resident Dashboard</h2>
+                                <p class="text-sm text-slate-500 dark:text-slate-400" data-i18n="dashboard.welcome">Mabuhay, Brgy. Ubaliw!</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-400 italic border-l-4 border-blue-500 pl-4 leading-relaxed" data-i18n="dashboard.description">
+                            "This portal provides instant access to official documents and community services. Review the requirements below before submitting your request."
+                        </p>
+                    </div>
+                    <div class="w-full md:w-1/3 bg-slate-100 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-600 transition-colors duration-300">
+                        <h3 class="font-bold text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 text-center" data-i18n="stats.title">Community Stats</h3>
+                        <div class="space-y-4 text-slate-700 dark:text-slate-300">
+                            <div class="flex justify-between text-sm"><span data-i18n="stats.residents">Residents</span><span class="font-bold text-blue-600">327</span></div>
+                            <div class="flex justify-between text-sm"><span data-i18n="stats.processed">Req. Processed</span><span class="font-bold text-emerald-600">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-6" data-i18n="services.title">Document Services</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl card-shadow border border-slate-200 dark:border-slate-700 group transition-all duration-300">
+                    <i class="fas fa-file-invoice text-3xl text-blue-600 mb-6"></i>
+                    <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-white" data-i18n="services.indigency.title">Certificate of Indigency</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6" data-i18n="services.indigency.desc">For medical and educational assistance.</p>
+                    <button onclick="viewRequirements('indigency')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-blue-600 hover:text-white rounded-xl transition-all font-bold text-sm text-slate-700 dark:text-slate-300" data-i18n="services.viewDetails">View Details & Fees</button>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl card-shadow border border-slate-200 dark:border-slate-700 group transition-all duration-300">
+                    <i class="fas fa-stamp text-3xl text-emerald-600 mb-6"></i>
+                    <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-white" data-i18n="services.clearance.title">Barangay Clearance</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-6" data-i18n="services.clearance.desc">For job applications and legal use.</p>
+                    <button onclick="viewRequirements('clearance')" class="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-all font-bold text-sm text-slate-700 dark:text-slate-300" data-i18n="services.viewDetails">View Details & Fees</button>
+                </div>
+            </div>
+
+            <div id="detailsBox" class="mt-8 hidden bg-white dark:bg-slate-800 p-8 rounded-3xl border-2 border-dashed border-blue-300 dark:border-slate-600 shadow-2xl animate-fade-in transition-colors duration-300">
+                <div id="detailsContent" class="text-slate-800 dark:text-white"></div>
+                <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <button onclick="scrollToPortal()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-colors">
+                        <i class="fas fa-paper-plane"></i> <span data-i18n="services.proceed">Proceed to Request</span>
+                    </button>
+                    <button onclick="document.getElementById('detailsBox').classList.add('hidden')" class="px-8 py-4 rounded-2xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" data-i18n="services.close">Close</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Emergency Section -->
+        <section id="emergency" class="scroll-mt-24 space-y-6">
+            <h2 class="text-3xl font-bold text-red-600 flex items-center gap-3"><i class="fas fa-ambulance"></i> <span data-i18n="emergency.title">Emergency Hotlines</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-6 rounded-3xl flex items-center justify-between card-shadow transition-colors duration-300">
+                    <div><h4 class="font-bold text-red-600 text-xs">PNP Polangui</h4><p class="text-xl font-black text-slate-800 dark:text-white">09996963211</p></div>
+                    <a href="tel:09996963211" class="w-12 h-12 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"><i class="fas fa-phone"></i></a>
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-6 rounded-3xl flex items-center justify-between card-shadow transition-colors duration-300">
+                    <div><h4 class="font-bold text-emerald-600 text-xs" data-i18n="emergency.healthCenter">RHU Polangui</h4><p class="text-xl font-black text-slate-800 dark:text-white">09152625978</p></div>
+                    <a href="tel:09152625978" class="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"><i class="fas fa-hospital"></i></a>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-6 rounded-3xl flex items-center justify-between card-shadow transition-colors duration-300">
+                    <div><h4 class="font-bold text-blue-600 text-xs">BFP Polangui</h4><p class="text-xl font-black text-slate-800 dark:text-white">09541820095</p></div>
+                    <a href="tel:09541820095" class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"><i class="fas fa-fire-extinguisher"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="scroll-mt-24 space-y-6">
+            <h2 class="text-3xl font-bold mb-6" data-i18n="contact.title">Contact Administration</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 md:p-12 card-shadow border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4 text-slate-800 dark:text-white" data-i18n="contact.office">Barangay Hall Office</h3>
+                        <p class="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed" data-i18n="contact.desc">For official inquiries, document verifications, and administrative concerns, you may reach our office through the following channels.</p>
+                        <div class="space-y-5">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shrink-0">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="contact.address">Physical Address</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Barangay Hall, Ubaliw, Polangui, Albay</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shrink-0">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="contact.email">Email Address</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">ubaliwpolangui@gmail.com</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shrink-0">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white" data-i18n="contact.hours">Office Hours</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Monday - Friday: 8:00 AM - 5:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 md:p-8 border border-slate-100 dark:border-slate-600 flex flex-col justify-center text-center transition-colors">
+                        <img src="https://scontent.fcrk3-1.fna.fbcdn.net/v/t1.15752-9/655078255_26735591859358358_6222996169564099139_n.jpg?stp=dst-jpg_p480x480_tt6&_nc_cat=105&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeGLDOHCO1rlg0d1ieJ3j44bXzAaNJTqXTNfMBo0lOpdM6U_nP4cpirxuL3NBlHJgyxQwj1IXiymqCZKQelxxJfh&_nc_ohc=slXRQ-RFBwoQ7kNvwFhT9OU&_nc_oc=Adrji--Sn6568WcRbI7daLpvJweGLObDG2nzMhVIByZYBqkP-wRrhBjx1AIiNdaTk9U&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fcrk3-1.fna&_nc_ss=7a32e&oh=03_Q7cD4wEoLn7V9-G8oWzGV4AhcTrlu87dyZW3hOT0vH58WfoYxQ&oe=69EC4A48" alt="Hon. Jose Niño S. Zamora II" class="w-20 h-20 mx-auto rounded-full object-cover shadow-lg mb-4 border-2 border-slate-200 dark:border-slate-600" />
+                        
+                        <h4 class="text-xl font-bold text-slate-800 dark:text-white">Hon. Jose Niño S. Zamora II</h4>
+                        <p class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mt-1 mb-4" data-i18n="contact.role">Barangay Captain / Administrator</p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed">"Committed to transparent and efficient public service for every Polangueno."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Portal Section -->
+        <section id="portal" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-6" data-i18n="portal.title">Resident Portal</h2>
+            
+            <!-- Logged Out State -->
+            <div id="loggedOutState" class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center card-shadow border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                <i class="fas fa-lock text-3xl text-slate-400 mb-6 block"></i>
+                <h3 class="text-xl font-bold mb-2 text-slate-800 dark:text-white" data-i18n="portal.authTitle">Authenticated Access</h3>
+                <p class="text-slate-600 dark:text-slate-400 mb-8 max-w-sm mx-auto" data-i18n="portal.authDesc">Please login to submit requests and track your history.</p>
+                <button onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-full font-bold transition-colors" data-i18n="portal.signInBtn">Sign In to Request</button>
+            </div>
+
+            <!-- Logged In State -->
+            <div id="loggedInState" class="hidden space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-blue-600"><i class="fas fa-paper-plane"></i> <span data-i18n="portal.newRequest">New Request</span></h3>
+                            <form id="requestForm" class="space-y-4">
+                                <select id="docType" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 ring-blue-500 transition-colors">
+                                    <option value="Certificate of Indigency" data-i18n="portal.options.indigency">Indigency</option>
+                                    <option value="Barangay Clearance" data-i18n="portal.options.clearance">Clearance</option>
+                                    <option value="Certificate of Residency" data-i18n="portal.options.residency">Residency</option>
+                                </select>
+                                <textarea id="docPurpose" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 ring-blue-500 transition-colors" placeholder="Purpose for this request..."></textarea>
+                                <button type="submit" id="submitRequestBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-colors">
+                                    <span id="submitBtnText" data-i18n="portal.submitBtn">Submit Application</span>
+                                    <div id="submitSpinner" class="spinner hidden"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3 bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                        <h3 class="text-xl font-bold mb-6 flex items-center justify-between text-slate-800 dark:text-white">
+                            <span><i class="fas fa-clock-rotate-left mr-2 text-blue-600"></i><span data-i18n="portal.history">History</span></span>
+                            <span id="requestCount" class="text-xs bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full text-slate-600 dark:text-slate-400 font-bold transition-colors">0</span>
+                        </h3>
+                        <div id="requestHistory" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+                            <div class="text-center py-12 text-slate-500 dark:text-slate-400" data-i18n="portal.noHistory">No history found.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- QR Section -->
+        <section class="bg-slate-900 text-white rounded-[3rem] p-10 md:p-16 text-center">
+            <h3 class="text-xl font-bold mb-6 text-white" data-i18n="qr.title">Digital Bulletin Access</h3>
+            <div id="qrcode" class="bg-white p-4 rounded-2xl w-fit mx-auto mb-6 shadow-2xl"></div>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold" data-i18n="qr.subtitle">Scan to Access Anywhere</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-12 px-6 transition-colors duration-300">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+           <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white rounded-full overflow-hidden shadow-md border-2 border-slate-200 dark:border-slate-600 shrink-0">
+                    <img src="https://scontent.fwnp1-1.fna.fbcdn.net/v/t39.30808-6/615534946_122117968401007708_3636808496982474570_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=mcbZs_HjSecQ7kNvwFdgrqp&_nc_oc=AdpqmZJEYneEKUon35N1LdmFobUrOY9E7DgD0YeNkxfSkDy8oMdEzOCvv124Vv1nIrc&_nc_zt=23&_nc_ht=scontent.fwnp1-1.fna&_nc_gid=QURTsM2cplq_4VqeK4uEhw&_nc_ss=7a32e&oh=00_AfztncKaqFDNCLqTL_SCMP-jii6K-cImNGEWScu4MOIJzA&oe=69C751E5" alt="Barangay Ubaliw Logo" class="w-full h-full object-cover scale-110">
+                </div>
+                <span class="font-black text-xl tracking-tight text-slate-800 dark:text-white">BS <span class="text-blue-600">CS1B</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="admin.html" class="text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <i class="fas fa-shield-alt"></i> <span data-i18n="footer.adminPortal">Admin Portal</span>
+                </a>
+            </div>
+        </div>
+        <div class="max-w-4xl mx-auto mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 text-center">
+            <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="footer.copyright">© 2026 BSCS1B Immersion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut,
+            setPersistence,
+            browserLocalPersistence
+        } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            collection, 
+            addDoc, 
+            onSnapshot 
+        } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR7U2yC1tnRDtus1PZys8r4MiY1IVTIY8",
+            authDomain: "barangayubaliw-75159.firebaseapp.com",
+            projectId: "barangayubaliw-75159",
+            storageBucket: "barangayubaliw-75159.firebasestorage.app",
+            messagingSenderId: "726046441576",
+            appId: "1:726046441576:web:a6b9096fd3fca01343bbdd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Set persistence to LOCAL so user stays logged in
+        setPersistence(auth, browserLocalPersistence);
+
+        let currentUser = null;
+        let unsubscribers = { history: null };
+        window.currentUserName = ''; // Store the logged-in user's name globally for translations
+
+        // TRANSLATIONS 
+        const translations = {
+            en: {
+                'page.title': 'Barangay Ubaliw | Digital Portal',
+                'header.loginBtn': 'Resident Login',
+                'nav.home': 'Home',
+                'nav.services': 'Services',
+                'nav.hotlines': 'Hotlines',
+                'nav.portal': 'Portal',
+                'login.title': 'Resident Login',
+                'login.subtitle': 'Enter your details to access your portal.',
+                'login.email': 'Email Address',
+                'login.password': 'Password',
+                'login.signIn': 'Sign In',
+                'login.noAccount': 'Not registered?',
+                'login.createProfile': 'Create Profile',
+                'register.title': 'Register Resident',
+                'register.subtitle': 'Join our digital community today.',
+                'register.fullName': 'Full Name',
+                'register.email': 'Email Address',
+                'register.password': 'Password (Min 6 chars)',
+                'register.zone': 'Zone / Purok',
+                'register.submit': 'Register Profile',
+                'register.hasAccount': 'Already registered?',
+                'register.login': 'Login',
+                'dashboard.title': 'Resident Dashboard',
+                'dashboard.welcome': 'Mabuhay, Polangueño!',
+                'dashboard.description': '"This portal provides instant access to official documents and community services. Review the requirements below before submitting your request."',
+                'stats.title': 'Community Stats',
+                'stats.residents': 'Residents',
+                'stats.processed': 'Req. Processed',
+                'services.title': 'Document Services',
+                'services.indigency.title': 'Certificate of Indigency',
+                'services.indigency.desc': 'For medical and educational assistance.',
+                'services.clearance.title': 'Barangay Clearance',
+                'services.clearance.desc': 'For job applications and legal use.',
+                'services.viewDetails': 'View Details & Fees',
+                'services.proceed': 'Proceed to Request',
+                'services.close': 'Close',
+                'emergency.title': 'Emergency Hotlines',
+                'emergency.healthCenter': 'Health Center',
+                'contact.title': 'Contact Administration',
+                'contact.office': 'Barangay Hall Office',
+                'contact.desc': 'For official inquiries, document verifications, and administrative concerns, you may reach our office through the following channels.',
+                'contact.address': 'Physical Address',
+                'contact.email': 'Email Address',
+                'contact.hours': 'Office Hours',
+                'contact.role': 'Barangay Captain / Administrator',
+                'portal.title': 'Resident Portal',
+                'portal.authTitle': 'Authenticated Access',
+                'portal.authDesc': 'Please login to submit requests and track your history.',
+                'portal.signInBtn': 'Sign In to Request',
+                'portal.newRequest': 'New Request',
+                'portal.options.indigency': 'Indigency',
+                'portal.options.clearance': 'Clearance',
+                'portal.options.residency': 'Residency',
+                'portal.submitBtn': 'Submit Application',
+                'portal.history': 'History',
+                'portal.noHistory': 'No history found.',
+                'qr.title': 'Digital Bulletin Access',
+                'qr.subtitle': 'Scan to Access Anywhere',
+                'footer.adminPortal': 'Admin Portal',
+                'footer.copyright': '© 2026 Barangay Ubaliw Governance. All rights reserved.',
+                'req.pending': 'Pending',
+                'req.processed': 'Processed',
+                'notif.loginSuccess': 'Successfully logged in!',
+                'notif.registerSuccess': 'Registration successful! Welcome to Barangay Ubaliw.',
+                'notif.logoutSuccess': 'Logged out successfully',
+                'notif.requestSubmitted': 'Request submitted successfully!',
+                'notif.fillAllFields': 'Please fill all required fields',
+                'notif.passwordLength': 'Password must be at least 6 characters',
+                'notif.enterPurpose': 'Please enter the purpose for your request',
+                'notif.invalidCredentials': 'Invalid email or password.',
+                'notif.emailInUse': 'This email is already registered.',
+                'notif.invalidEmail': 'Please enter a valid email address.',
+                'notif.tooManyAttempts': 'Too many failed attempts. Please try again later.',
+                'notif.errorLogin': 'Login failed. Please check your credentials.',
+                'notif.errorSubmit': 'Error submitting request. Please try again.',
+                'notif.errorLogout': 'Error logging out',
+                'indigency.requirements': '<h4 class="font-bold text-lg mb-4 text-blue-600">Certificate of Indigency</h4><ul class="list-disc list-inside space-y-2 text-sm"><li>Valid ID (Voter\'s ID or any Govt ID)</li><li>Purpose of request clearly stated</li><li><strong>Fee:</strong> FREE</li></ul>',
+                'clearance.requirements': '<h4 class="font-bold text-lg mb-4 text-emerald-600">Barangay Clearance</h4><ul class="list-disc list-inside space-y-2 text-sm"><li>Recent Cedula (Community Tax Certificate)</li><li>2x2 Picture</li><li><strong>Fee:</strong> ₱50.00</li></ul>'
+            },
+            tl: {
+                'page.title': 'Barangay Ubaliw | Digital Portal',
+                'header.loginBtn': 'Mag-login bilang Residente',
+                'nav.home': 'Bahay',
+                'nav.services': 'Serbisyo',
+                'nav.hotlines': 'Hotline',
+                'nav.portal': 'Portal',
+                'login.title': 'Pag-login ng Residente',
+                'login.subtitle': 'Ilagay ang iyong impormasyon para ma-access ang portal.',
+                'login.email': 'Email Address',
+                'login.password': 'Password',
+                'login.signIn': 'Mag-sign In',
+                'login.noAccount': 'Hindi pa rehistrado?',
+                'login.createProfile': 'Gumawa ng Profile',
+                'register.title': 'Rehistrasyon ng Residente',
+                'register.subtitle': 'Sumali sa aming digital na komunidad ngayon.',
+                'register.fullName': 'Buong Pangalan',
+                'register.email': 'Email Address',
+                'register.password': 'Password (Min 6 letra)',
+                'register.zone': 'Zone / Purok',
+                'register.submit': 'Magrehistro',
+                'register.hasAccount': 'May account na?',
+                'register.login': 'Mag-login',
+                'dashboard.title': 'Dashboard ng Residente',
+                'dashboard.welcome': 'Mabuhay, Polangueño!',
+                'dashboard.description': '"Ang portal na ito ay nagbibigay ng instant access sa mga opisyal na dokumento at serbisyo ng komunidad. Suriin ang mga kinakailangan bago magsumite ng iyong kahilingan."',
+                'stats.title': 'Istatistika ng Komunidad',
+                'stats.residents': 'Mga Residente',
+                'stats.processed': 'Naproseso',
+                'services.title': 'Mga Serbisyong Dokumento',
+                'services.indigency.title': 'Sertipiko ng Indigency',
+                'services.indigency.desc': 'Para sa medikal at edukasyonal na tulong.',
+                'services.clearance.title': 'Barangay Clearance',
+                'services.clearance.desc': 'Para sa aplikasyon sa trabaho at legal na gamit.',
+                'services.viewDetails': 'Tingnan ang Detalye at Bayad',
+                'services.proceed': 'Magpatuloy sa Kahilingan',
+                'services.close': 'Isara',
+                'emergency.title': 'Mga Hotline ng Emergency',
+                'emergency.healthCenter': 'Health Center',
+                'contact.title': 'Makipag-ugnayan sa Administrasyon',
+                'contact.office': 'Opisina ng Barangay Hall',
+                'contact.desc': 'Para sa mga opisyal na katanungan, beripikasyon ng dokumento, at alalahaning administratibo, maaari kayong makipag-ugnayan sa amin sa pamamagitan ng mga sumusunod.',
+                'contact.address': 'Pisikal na Address',
+                'contact.email': 'Email Address',
+                'contact.hours': 'Oras ng Opisina',
+                'contact.role': 'Kapitan ng Barangay / Administrador',
+                'portal.title': 'Portal ng Residente',
+                'portal.authTitle': 'Naka-authenticate na Access',
+                'portal.authDesc': 'Mangyaring mag-login para magsumite ng mga kahilingan at subaybayan ang iyong kasaysayan.',
+                'portal.signInBtn': 'Mag-sign In para Humiling',
+                'portal.newRequest': 'Bagong Kahilingan',
+                'portal.options.indigency': 'Indigency',
+                'portal.options.clearance': 'Clearance',
+                'portal.options.residency': 'Residency',
+                'portal.submitBtn': 'Isumite ang Aplikasyon',
+                'portal.history': 'Kasaysayan',
+                'portal.noHistory': 'Walang nakitang kasaysayan.',
+                'qr.title': 'Digital Bulletin Access',
+                'qr.subtitle': 'I-scan para Ma-access Kahit Saan',
+                'footer.adminPortal': 'Admin Portal',
+                'footer.copyright': '© 2026 Pamahalaang Barangay Ubaliw. Lahat ng karapatan ay nakalaan.',
+                'req.pending': 'Nakabinbin',
+                'req.processed': 'Naproseso',
+                'notif.loginSuccess': 'Matagumpay na nag-login!',
+                'notif.registerSuccess': 'Matagumpay ang rehistrasyon! Maligayang pagdating sa Barangay Ubaliw.',
+                'notif.logoutSuccess': 'Matagumpay na nag-log out',
+                'notif.requestSubmitted': 'Matagumpay na naisumite ang kahilingan!',
+                'notif.fillAllFields': 'Mangyaring punan ang lahat ng kinakailangang field',
+                'notif.passwordLength': 'Ang password ay dapat hindi bababa sa 6 na character',
+                'notif.enterPurpose': 'Mangyaring ilagay ang layunin ng iyong kahilingan',
+                'notif.invalidCredentials': 'Di-wastong email o password.',
+                'notif.emailInUse': 'Ang email na ito ay nakarehistro na.',
+                'notif.invalidEmail': 'Mangyaring maglagay ng wastong email address.',
+                'notif.tooManyAttempts': 'Masyadong maraming nabigong pagtatangka. Subukang muli mamaya.',
+                'notif.errorLogin': 'Nabigo ang pag-login. Mangyaring suriin ang iyong mga kredensyal.',
+                'notif.errorSubmit': 'Nabigo sa pagsusumite ng kahilingan. Subukang muli.',
+                'notif.errorLogout': 'Error sa pag-log out',
+                'indigency.requirements': '<h4 class="font-bold text-lg mb-4 text-blue-600">Sertipiko ng Indigency</h4><ul class="list-disc list-inside space-y-2 text-sm"><li>Valid ID (Voter\'s ID o anumang Govt ID)</li><li>Malinaw na layunin ng kahilingan</li><li><strong>Bayad:</strong> LIBRE</li></ul>',
+                'clearance.requirements': '<h4 class="font-bold text-lg mb-4 text-emerald-600">Barangay Clearance</h4><ul class="list-disc list-inside space-y-2 text-sm"><li>Bagong Cedula (Community Tax Certificate)</li><li>2x2 Picture</li><li><strong>Bayad:</strong> ₱50.00</li></ul>'
+            }
+        };
+
+        function getText(key) {
+            return translations[window.currentLang]?.[key] || translations['en']?.[key] || key;
+        }
+
+        function applyTranslations() {
+            const t = translations[window.currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (t?.[key]) el.textContent = t[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (t?.[key]) el.placeholder = t[key];
+            });
+            const titleEl = document.querySelector('[data-i18n="page.title"]');
+            if (titleEl && t?.['page.title']) document.title = t['page.title'];
+
+            // --- Handle Dynamic Personalized Greeting ---
+            const greetingEl = document.getElementById('userGreeting');
+            if (greetingEl) {
+                if (window.currentUserName) {
+                    const firstName = window.currentUserName.split(' ')[0];
+                    const cleanName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+                    greetingEl.textContent = window.currentLang === 'tl' 
+                        ? `Magandang araw, ${cleanName}!` 
+                        : `Hi ${cleanName}!`;
+                } else {
+                    // Fallback to dictionary translation
+                    greetingEl.textContent = t?.['dashboard.title'] || 'Resident Dashboard';
+                }
+            }
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        window.setLanguage = function(lang) {
+            window.currentLang = lang;
+            localStorage.setItem('brgy-lang', lang);
+            document.documentElement.lang = lang;
+            applyTranslations();
+            updateLangDropdown();
+            toggleLangDropdown();
+        };
+
+        window.toggleLangDropdown = function() {
+            const dropdown = document.getElementById('langDropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        };
+
+        function updateLangDropdown() {
+            document.querySelectorAll('.lang-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.lang === window.currentLang);
+            });
+        }
+
+        window.toggleDarkMode = () => {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('brgy-theme', 'light');
+                if (icon) icon.className = 'fas fa-moon';
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('brgy-theme', 'dark');
+                if (icon) icon.className = 'fas fa-sun';
+            }
+        };
+
+        // ==================== MODAL FUNCTIONS ====================
+        window.openAuthModal = function() {
+            const overlay = document.getElementById('modalOverlay');
+            const card = document.getElementById('authModal');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+            if (card) card.classList.remove('hidden');
+            toggleAuthView('login');
+        };
+
+        window.closeModals = function() {
+            const overlay = document.getElementById('modalOverlay');
+            const card = document.getElementById('authModal');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+            if (card) card.classList.add('hidden');
+        };
+
+        window.toggleAuthView = function(view) {
+            const loginView = document.getElementById('loginViewModal');
+            const registerView = document.getElementById('registerViewModal');
+            
+            if (view === 'register') {
+                if (loginView) loginView.classList.add('hidden');
+                if (registerView) registerView.classList.remove('hidden');
+            } else {
+                if (registerView) registerView.classList.add('hidden');
+                if (loginView) loginView.classList.remove('hidden');
+            }
+        };
+
+        window.toggleLoginPassword = () => {
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('loginPasswordToggle');
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            }
+        };
+
+        window.toggleRegPassword = () => {
+            const input = document.getElementById('regPassword');
+            const icon = document.getElementById('regPasswordToggle');
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            }
+        };
+
+        // ==================== NOTIFICATION ====================
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const box = document.getElementById('notificationBox');
+            const icon = document.getElementById('notificationIcon');
+            const text = document.getElementById('notificationText');
+            
+            if (!notification || !box || !icon || !text) return;
+            
+            text.textContent = message;
+            box.className = 'px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border bg-white dark:bg-slate-800 dark:border-slate-700';
+            
+            if (type === 'error') {
+                box.classList.add('bg-red-600', 'text-white', 'border-red-500');
+                icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'success') {
+                box.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'warning') {
+                box.classList.add('bg-amber-500', 'text-white', 'border-amber-400');
+                icon.className = 'fas fa-exclamation-triangle';
+            } else {
+                box.classList.add('text-slate-800', 'dark:text-white');
+                icon.className = 'fas fa-info-circle text-blue-500';
+            }
+            
+            notification.classList.remove('hidden');
+            setTimeout(() => notification.classList.add('hidden'), 4000);
+        }
+
+        // ==================== AUTH STATE HANDLER ====================
+        onAuthStateChanged(auth, async (user) => {
+            console.log('Auth state changed:', user ? 'User logged in' : 'No user');
+            currentUser = user;
+            
+            if (user) {
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    const snap = await getDoc(userRef);
+                    
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        
+                        if (data.role === 'admin') {
+                            showNotification('Admins should use the Admin Portal', 'warning');
+                            await signOut(auth);
+                            window.location.href = 'admin.html';
+                            return;
+                        }
+                        
+                        updateUIForLoggedInUser(data);
+                        setupUserLogic(user.uid);
+                    } else {
+                        console.log('Creating basic user profile');
+                        const newProfile = {
+                            name: user.email.split('@')[0],
+                            email: user.email,
+                            address: 'Purok 1',
+                            role: 'resident',
+                            createdAt: new Date().toISOString()
+                        };
+                        try {
+                            await setDoc(doc(db, 'users', user.uid), newProfile);
+                        } catch (err) {
+                            console.warn('Database write permission denied, but logging in anyway.');
+                        }
+                        updateUIForLoggedInUser(newProfile);
+                        setupUserLogic(user.uid);
+                    }
+                } catch (error) {
+                    console.error('Error loading profile from DB:', error);
+                    // Fallback to still update UI even if Firestore rules block read
+                    updateUIForLoggedInUser({ name: user.email.split('@')[0], email: user.email });
+                    setupUserLogic(user.uid);
+                }
+            } else {
+                updateUIForLoggedOutUser();
+            }
+        });
+
+        // ==================== UI UPDATE FUNCTIONS ====================
+        function updateUIForLoggedInUser(userData) {
+            console.log('Updating UI for logged in user:', userData);
+            
+            // Set the current user's name globally
+            window.currentUserName = userData.name || userData.email.split('@')[0];
+
+            const userHeader = document.getElementById('userHeader');
+            const loggedOut = document.getElementById('loggedOutState');
+            const loggedIn = document.getElementById('loggedInState');
+
+            if (userHeader) {
+                userHeader.innerHTML = `
+                    <div class="flex items-center gap-4 bg-white/10 px-4 py-2 rounded-full border border-white/20 animate-fade-in">
+                        <i class="fas fa-user-circle text-lg text-emerald-400"></i>
+                        <span class="text-sm font-bold truncate max-w-[150px]">${userData.name || userData.email}</span>
+                        <button id="logoutBtn" class="text-xs bg-red-500/80 hover:bg-red-600 px-3 py-1.5 rounded-full font-bold transition-all">
+                            <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                        </button>
+                    </div>`;
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.onclick = handleLogout;
+                }
+            }
+            
+            if (loggedOut) {
+                loggedOut.classList.add('hidden');
+            }
+            if (loggedIn) {
+                loggedIn.classList.remove('hidden');
+                loggedIn.classList.add('animate-fade-in');
+            }
+
+            // Apply translation refresh to trigger the custom greeting name
+            applyTranslations();
+        }
+
+        function updateUIForLoggedOutUser() {
+            console.log('Updating UI for logged out user');
+            
+            // Clear the global user name
+            window.currentUserName = '';
+
+            const userHeader = document.getElementById('userHeader');
+            const loggedOut = document.getElementById('loggedOutState');
+            const loggedIn = document.getElementById('loggedInState');
+
+            if (userHeader) {
+                userHeader.innerHTML = `
+                    <button onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-full shadow-lg shadow-blue-600/30 transition-all font-semibold flex items-center gap-2 transform hover:-translate-y-1">
+                        <i class="fas fa-user-circle text-lg"></i> <span data-i18n="header.loginBtn">Resident Login</span>
+                    </button>`;
+            }
+            
+            if (loggedOut) loggedOut.classList.remove('hidden');
+            if (loggedIn) loggedIn.classList.add('hidden');
+            
+            if (unsubscribers.history) {
+                unsubscribers.history();
+                unsubscribers.history = null;
+            }
+
+            // Apply translation refresh to revert to "Resident Dashboard"
+            applyTranslations();
+        }
+
+        // ==================== LOGIN FORM HANDLER ====================
+        document.getElementById('residentLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Login form submitted');
+            
+            const emailInput = document.getElementById('loginEmail');
+            const passInput = document.getElementById('loginPassword');
+            
+            if (!emailInput || !passInput) {
+                console.error('Login form inputs not found');
+                return;
+            }
+            
+            const email = emailInput.value.trim();
+            const password = passInput.value;
+            
+            if (!email || !password) {
+                showNotification(getText('notif.fillAllFields'), 'error');
+                return;
+            }
+            
+            setLoginLoading(true);
+            
+            try {
+                console.log('Attempting login...');
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('Login successful:', userCredential.user.uid);
+                
+                // Clear form
+                emailInput.value = '';
+                passInput.value = '';
+                
+                // Close modal
+                closeModals();
+                showNotification(getText('notif.loginSuccess'), 'success');
+                
+                // Automatically scroll down to the portal dashboard
+                setTimeout(() => {
+                    const portal = document.getElementById('portal');
+                    if (portal) portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                let errorMessage = getText('notif.errorLogin');
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = getText('notif.invalidCredentials');
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = getText('notif.tooManyAttempts');
+                }
+                showNotification(errorMessage, 'error');
+                
+                const form = document.getElementById('residentLoginForm');
+                if (form) {
+                    form.classList.add('shake');
+                    setTimeout(() => form.classList.remove('shake'), 500);
+                }
+            } finally {
+                setLoginLoading(false);
+            }
+        });
+
+        // ==================== REGISTER FORM HANDLER ====================
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Register form submitted');
+            
+            const nameInput = document.getElementById('regName');
+            const emailInput = document.getElementById('regEmail');
+            const passInput = document.getElementById('regPassword');
+            const addressInput = document.getElementById('regAddress');
+            
+            if (!nameInput || !emailInput || !passInput) {
+                console.error('Register form inputs not found');
+                return;
+            }
+            
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passInput.value;
+            const address = addressInput ? addressInput.value : 'Purok 1';
+            
+            if (!name || !email || !password) {
+                showNotification(getText('notif.fillAllFields'), 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showNotification(getText('notif.passwordLength'), 'error');
+                return;
+            }
+            
+            setRegisterLoading(true);
+            
+            try {
+                console.log('Attempting registration...');
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                console.log('Registration successful:', cred.user.uid);
+                
+                // Create user profile in Firestore
+                await setDoc(doc(db, 'users', cred.user.uid), {
+                    name: name,
+                    email: email,
+                    address: address,
+                    role: 'resident',
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                });
+                
+                // Clear form
+                nameInput.value = '';
+                emailInput.value = '';
+                passInput.value = '';
+                
+                // Close modal
+                closeModals();
+                showNotification(getText('notif.registerSuccess'), 'success');
+                
+                // Automatically scroll down to the portal dashboard
+                setTimeout(() => {
+                    const portal = document.getElementById('portal');
+                    if (portal) portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = getText('notif.emailInUse');
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = getText('notif.invalidEmail');
+                }
+                showNotification(errorMessage, 'error');
+            } finally {
+                setRegisterLoading(false);
+            }
+        });
+
+        // ==================== LOGOUT HANDLER ====================
+        async function handleLogout() {
+            console.log('Logging out...');
+            try {
+                if (unsubscribers.history) {
+                    unsubscribers.history();
+                    unsubscribers.history = null;
+                }
+                await signOut(auth);
+                showNotification(getText('notif.logoutSuccess'), 'success');
+            } catch (error) {
+                console.error('Logout error:', error);
+                showNotification(getText('notif.errorLogout'), 'error');
+            }
+        }
+        window.handleLogout = handleLogout;
+
+        // ==================== LOADING STATES ====================
+        function setLoginLoading(loading) {
+            const btn = document.getElementById('loginBtn');
+            const text = document.getElementById('loginBtnText');
+            const spinner = document.getElementById('loginSpinner');
+            
+            if (!btn || !text || !spinner) return;
+            
+            btn.disabled = loading;
+            text.textContent = loading ? 'Signing in...' : getText('login.signIn');
+            spinner.classList.toggle('hidden', !loading);
+        }
+
+        function setRegisterLoading(loading) {
+            const btn = document.getElementById('registerBtn');
+            const text = document.getElementById('registerBtnText');
+            const spinner = document.getElementById('registerSpinner');
+            
+            if (!btn || !text || !spinner) return;
+            
+            btn.disabled = loading;
+            text.textContent = loading ? 'Creating account...' : getText('register.submit');
+            spinner.classList.toggle('hidden', !loading);
+        }
+
+        // ==================== USER LOGIC (REQUESTS) ====================
+        function setupUserLogic(uid) {
+            console.log('Setting up user logic for:', uid);
+            
+            const form = document.getElementById('requestForm');
+            if (form) {
+                form.onsubmit = async (e) => {
+                    e.preventDefault();
+                    
+                    const typeInput = document.getElementById('docType');
+                    const purposeInput = document.getElementById('docPurpose');
+                    
+                    if (!typeInput || !purposeInput) return;
+                    
+                    const purpose = purposeInput.value.trim();
+                    
+                    if (!purpose) {
+                        showNotification(getText('notif.enterPurpose'), 'error');
+                        return;
+                    }
+                    
+                    setSubmitLoading(true);
+                    
+                    try {
+                        await addDoc(collection(db, 'requests'), {
+                            userId: uid,
+                            userName: window.currentUserName || currentUser.displayName || currentUser.email.split('@')[0], // ADDED: Save resident name
+                            docType: typeInput.value,
+                            purpose: purpose,
+                            status: 'Pending',
+                            timestamp: new Date().toISOString(),
+                            userEmail: currentUser ? currentUser.email : ''
+                        });
+                        purposeInput.value = '';
+                        showNotification(getText('notif.requestSubmitted'), 'success');
+                    } catch (error) {
+                        console.error('Error submitting request:', error);
+                        showNotification(getText('notif.errorSubmit'), 'error');
+                    } finally {
+                        setSubmitLoading(false);
+                    }
+                };
+            }
+
+            // Set up real-time listener for user's requests
+            const reqRef = collection(db, 'requests');
+            unsubscribers.history = onSnapshot(reqRef, (snap) => {
+                const historyBox = document.getElementById('requestHistory');
+                const countBox = document.getElementById('requestCount');
+                
+                if (!historyBox) return;
+                
+                const userRequests = snap.docs
+                    .map(d => ({id: d.id, ...d.data()}))
+                    .filter(r => r.userId === uid)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                if (countBox) countBox.innerText = userRequests.length;
+
+                if (userRequests.length === 0) {
+                    historyBox.innerHTML = `<div class="text-center py-12 text-slate-400">${getText('portal.noHistory')}</div>`;
+                    return;
+                }
+
+                historyBox.innerHTML = userRequests.map(req => `
+                    <div class="p-4 rounded-2xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center transition-colors">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-white">${req.docType}</h4>
+                            <p class="text-xs text-slate-500">${new Date(req.timestamp).toLocaleDateString()}</p>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full ${req.status === 'Pending' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'}">
+                            ${req.status === 'Pending' ? getText('req.pending') : getText('req.processed')}
+                        </span>
+                    </div>
+                `).join('');
+            }, (error) => {
+                console.error("Error fetching history:", error);
+            });
+        }
+
+        function setSubmitLoading(loading) {
+            const btn = document.getElementById('submitRequestBtn');
+            const text = document.getElementById('submitBtnText');
+            const spinner = document.getElementById('submitSpinner');
+            
+            if (!btn || !text || !spinner) return;
+            
+            btn.disabled = loading;
+            text.textContent = loading ? 'Submitting...' : getText('portal.submitBtn');
+            spinner.classList.toggle('hidden', !loading);
+        }
+
+        // ==================== OTHER FUNCTIONS ====================
+        window.scrollToPortal = () => {
+            const portal = document.getElementById('portal');
+            const detailsBox = document.getElementById('detailsBox');
+            if (portal) portal.scrollIntoView({ behavior: 'smooth' });
+            if (detailsBox) detailsBox.classList.add('hidden');
+        };
+
+        window.viewRequirements = (type) => {
+            const box = document.getElementById('detailsBox');
+            const content = document.getElementById('detailsContent');
+            if (box) box.classList.remove('hidden');
+            if (content) {
+                content.innerHTML = type === 'indigency' ? getText('indigency.requirements') : getText('clearance.requirements');
+            }
+        };
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing...');
+            applyTranslations();
+            updateLangDropdown();
+            
+            // Generate QR code safely
+            const qrContainer = document.getElementById('qrcode');
+            if (qrContainer && typeof QRCode !== 'undefined') {
+                qrContainer.innerHTML = ''; // clear any existing
+                new QRCode(qrContainer, {
+                    text: window.location.href.split('#')[0], // Clean URL without hash
+                    width: 140,
+                    height: 140,
+                    colorDark: '#312e81', // indigo-900
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const switcher = document.querySelector('.lang-switcher');
+                const dropdown = document.getElementById('langDropdown');
+                if (switcher && dropdown && !switcher.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
